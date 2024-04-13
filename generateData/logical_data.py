@@ -1,15 +1,13 @@
 import random
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from imblearn.over_sampling import RandomOverSampler
+from sklearn.preprocessing import LabelEncoder
 
-def generate_clustered_values(total_values, cluster_center, std_deviation):
-    lower_bound = max(0, cluster_center - 3 * std_deviation)
-    upper_bound = min(150, cluster_center + 3 * std_deviation)
-    mid_cluster = (upper_bound + lower_bound) // 2
+excel_file = r"C:\Users\dell\OneDrive - Lebanese American University\Desktop\Spring2024\MCE2\Project\random_values.xlsx"
+df = pd.read_excel(excel_file)
 
-    # Generate clustered values around cluster_center with Gaussian distribution
-    clustered_values = [max(lower_bound, min(upper_bound, int(random.gauss(cluster_center, std_deviation)))) for _ in range(total_values)]
-    return clustered_values
 
 def add_noise(values, noise_percent, out_of_range_percent):
     num_noise = int(len(values) * noise_percent)
@@ -240,12 +238,6 @@ def generate_potassium_recommendation(temp, hum, rain, prev_k):
         return prev_k + 3 if prev_k < 30 else 30  # Default value
 
 
-    
-
-    
-
-
-
 total_values = 1500
 noise_percent = 0.2
 out_of_range_percent = 0.1
@@ -255,14 +247,103 @@ temp_min = 0
 temp_max = 50
 
 # Generate clustered values for Nitrogen, Phosphorus, and Potassium
-Nitrogen = generate_clustered_values(total_values, NPK_cluster_center, NPK_std_deviation)
-Phosphorus = generate_clustered_values(total_values, NPK_cluster_center, NPK_std_deviation)
-Potassium = generate_clustered_values(total_values, NPK_cluster_center, NPK_std_deviation)
+# Nitrogen = generate_clustered_values(total_values, NPK_cluster_center, NPK_std_deviation)
+# Phosphorus = generate_clustered_values(total_values, NPK_cluster_center, NPK_std_deviation)
+# Potassium = generate_clustered_values(total_values, NPK_cluster_center, NPK_std_deviation)
 
-# Add noise to the arrays
-Nitrogen = add_noise(Nitrogen, noise_percent, out_of_range_percent)
-Phosphorus = add_noise(Phosphorus, noise_percent, out_of_range_percent)
-Potassium = add_noise(Potassium, noise_percent, out_of_range_percent)
+# # Add noise to the arrays
+# Nitrogen = add_noise(Nitrogen, noise_percent, out_of_range_percent)
+# Phosphorus = add_noise(Phosphorus, noise_percent, out_of_range_percent)
+# Potassium = add_noise(Potassium, noise_percent, out_of_range_percent)
+
+def classify_nitrogen(nitrogen_value):
+    #very low = 0
+    if nitrogen_value >= 0 and nitrogen_value <= 17:
+        return '0'
+     #low = 1
+    elif nitrogen_value > 17 and nitrogen_value <= 34:
+        return '1'
+    #optimal = 2
+    elif nitrogen_value > 34 and nitrogen_value <= 51:
+        return '2'
+    #slightly high = 3
+    elif nitrogen_value > 51 and nitrogen_value <= 68:
+        return '3'
+    #moderately high = 4
+    elif nitrogen_value > 68 and nitrogen_value <= 85:
+        return '4'
+    #high = 5
+    elif nitrogen_value > 85 and nitrogen_value <= 102:
+        return '5'
+    # very high =6
+    elif nitrogen_value > 102 and nitrogen_value <= 119:
+        return '6'
+    #extremely high =7 
+    elif nitrogen_value > 119 and nitrogen_value <= 136:
+        return '7'
+    #overload = 8
+    elif nitrogen_value > 136 and nitrogen_value <= 153:
+        return '8'
+    #toxic = 9s
+    elif nitrogen_value > 153 and nitrogen_value <= 255:
+        return '9'
+    #invalid =10
+    else:
+        return '10'
+
+# Classify Nitrogen values
+df['Nitrogen Classification'] = df['N'].apply(classify_nitrogen)
+
+df.to_excel(excel_file, index=False)
+
+def classify_phosphorus(nitrogen_value):
+    #very low = 0
+    if nitrogen_value >= 0 and nitrogen_value <= 17:
+        return '0'
+     # low = 1
+    elif nitrogen_value > 17 and nitrogen_value <= 34:
+        return '1'
+    #moderately low = 2
+    elif nitrogen_value > 34 and nitrogen_value <= 51:
+        return '2'
+    #slightly low = 3
+    elif nitrogen_value > 51 and nitrogen_value <= 68:
+        return '3'
+    #optimal = 4
+    elif nitrogen_value > 68 and nitrogen_value <= 85:
+        return '4'
+    #slightly high = 5
+    elif nitrogen_value > 85 and nitrogen_value <= 102:
+        return '5'
+    #moderately high =6
+    elif nitrogen_value > 102 and nitrogen_value <= 119:
+        return '6'
+    # high =7 
+    elif nitrogen_value > 119 and nitrogen_value <= 136:
+        return '7'
+    #very high = 8
+    elif nitrogen_value > 136 and nitrogen_value <= 153:
+        return '8'
+    #extremely high = 9
+    elif nitrogen_value > 153 and nitrogen_value <= 187:
+        return '9'
+    #toxic high = 10
+    elif nitrogen_value > 187 and nitrogen_value <= 255:
+        return '10'
+    #invalid =11
+    else:
+        return '11'
+
+df['Phosphorus Classification'] = df['P'].apply(classify_phosphorus)
+
+df.to_excel(excel_file, index=False)
+
+
+
+
+
+
+
 
 # Generate temperature values
 Temperature = generate_balanced_temp_values(total_values, temp_min, temp_max, noise_percent)
@@ -276,35 +357,35 @@ Rain_intensity = [estimate_rain_intensity(temp, hum) for temp, hum in zip(Temper
 # Estimate soil recommendation based on temperature, humidity, and rain intensity
 Soil_recommendation = estimate_soil_recommendation(Temperature, Humidity, Rain_intensity)
 
-recommended_N = []
-recommended_P = []
-recommended_K = []
-for temp, rain, hum, rec_n, rec_p, rec_k in zip(Temperature, Rain_intensity, Humidity, Nitrogen, Nitrogen, Potassium):
-    recommended_N.append(generate_nitrogen_recommendation(temp,hum, rain,rec_n))
-    recommended_P.append(generate_phosphorus_recommendation(temp,hum, rain,rec_p))
-    recommended_K.append(generate_potassium_recommendation(temp,hum, rain,rec_k))
+# recommended_N = []
+# recommended_P = []
+# recommended_K = []
+# for temp, rain, hum, rec_n, rec_p, rec_k in zip(Temperature, Rain_intensity, Humidity, Nitrogen, Nitrogen, Potassium):
+#     recommended_N.append(generate_nitrogen_recommendation(temp,hum, rain,rec_n))
+#     recommended_P.append(generate_phosphorus_recommendation(temp,hum, rain,rec_p))
+#     recommended_K.append(generate_potassium_recommendation(temp,hum, rain,rec_k))
 
-added_N = []
-added_P = []
-added_K = []
+# added_N = []
+# added_P = []
+# added_K = []
 
 
-# Create a DataFrame with seven columns
-df = pd.DataFrame({
-    "Nitrogen": Nitrogen,
-    "Phosphorus": Phosphorus,
-    "Potassium": Potassium,
-    "Temperature": Temperature,
-    "Humidity": Humidity,
-    "Rain Intensity": Rain_intensity,
-    "Soil Recommendation": Soil_recommendation,
-    "Recommended_N":recommended_N,
-    "Recommended_P":recommended_P,
-    "Recommended_K":recommended_K,
-})
+# # Create a DataFrame with seven columns
+# df = pd.DataFrame({
+#     # "Nitrogen": Nitrogen,
+#     # "Phosphorus": Phosphorus,
+#     # "Potassium": Potassium,
+#     "Temperature": Temperature,
+#     "Humidity": Humidity,
+#     "Rain Intensity": Rain_intensity,
+#     "Soil Recommendation": Soil_recommendation,
+#     "Recommended_N":recommended_N,
+#     "Recommended_P":recommended_P,
+#     "Recommended_K":recommended_K,
+# })
 
 # Specify the file path where you want to save the Excel file
-excel_file = r"C:\Users\dell\OneDrive - Lebanese American University\Desktop\Spring 2024\Mechatronics system design 2\Project\random_values.xlsx"
+
 
 # Write the DataFrame to an Excel file
-df.to_excel(excel_file, index=False)
+#df.to_excel(excel_file, index=False)
